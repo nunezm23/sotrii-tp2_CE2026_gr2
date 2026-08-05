@@ -1,0 +1,14 @@
+23:18:26 **** Incremental Build of configuration Debug for project sotrii-tp2_02-application ****
+make -j7 all 
+arm-none-eabi-gcc "../app/src/task_sys.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F446xx -c -I../Core/Inc -I../Drivers/STM32F4xx_HAL_Driver/Inc -I../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I../Drivers/CMSIS/Include -I../Middlewares/Third_Party/FreeRTOS/Source/include -I../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS -I../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F -I../app/inc -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"app/src/task_sys.d" -MT"app/src/task_sys.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "app/src/task_sys.o"
+arm-none-eabi-gcc -o "sotrii-tp2_02-application.elf" @"objects.list"  -lrdimon -mcpu=cortex-m4 -T"/Users/usuario/Documents/Especializacion/RTOS2/sotrii-tp2_CE2026_gr2/sotrii-tp2_02-application/STM32F446RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="sotrii-tp2_02-application.map" -Wl,--gc-sections -static -specs=rdimon.specs --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: sotrii-tp2_02-application.elf
+ 
+arm-none-eabi-size  sotrii-tp2_02-application.elf 
+arm-none-eabi-objdump -h -S sotrii-tp2_02-application.elf  > "sotrii-tp2_02-application.list"
+   text	   data	    bss	    dec	    hex	filename
+  31036	    416	  18912	  50364	   c4bc	sotrii-tp2_02-application.elf
+Finished building: default.size.stdout
+ 
+Finished building: sotrii-tp2_02-application.list
+ 

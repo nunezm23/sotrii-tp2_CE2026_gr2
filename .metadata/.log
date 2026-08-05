@@ -1,0 +1,39 @@
+
+!ENTRY org.eclipse.ui.ide 4 4 2026-08-04 22:14:22.459
+!MESSAGE Problems saving workspace
+
+!ENTRY org.eclipse.ui.ide 4 1 2026-08-04 22:14:22.488
+!MESSAGE Problems occurred while trying to save the state of the workbench.
+!SUBENTRY 1 org.eclipse.core.resources 4 568 2026-08-04 22:14:22.488
+!MESSAGE Could not write workspace metadata '/Users/usuario/Documents/Especializacion/RTOS2/sotrii-tp2_CE2026_gr2/.metadata/.plugins/org.eclipse.core.resources/.root/1.tree'.
+!STACK 0
+java.io.FileNotFoundException: /Users/usuario/Documents/Especializacion/RTOS2/sotrii-tp2_CE2026_gr2/.metadata/.plugins/org.eclipse.core.resources/.root/1.tree (No such file or directory)
+	at java.base/java.io.FileOutputStream.open0(Native Method)
+	at java.base/java.io.FileOutputStream.open(FileOutputStream.java:289)
+	at java.base/java.io.FileOutputStream.<init>(FileOutputStream.java:230)
+	at java.base/java.io.FileOutputStream.<init>(FileOutputStream.java:179)
+	at org.eclipse.core.internal.localstore.SafeFileOutputStream.<init>(SafeFileOutputStream.java:55)
+	at org.eclipse.core.internal.resources.SaveManager.saveTree(SaveManager.java:1424)
+	at org.eclipse.core.internal.resources.SaveManager.save(SaveManager.java:1230)
+	at org.eclipse.core.internal.resources.Workspace.save(Workspace.java:2492)
+	at org.eclipse.ui.internal.ide.application.IDEWorkbenchAdvisor.lambda$1(IDEWorkbenchAdvisor.java:553)
+	at org.eclipse.jface.operation.ModalContext$ModalContextThread.run(ModalContext.java:124)
+
+!ENTRY org.eclipse.core.resources 2 10035 2026-08-04 22:14:23.087
+!MESSAGE The workspace will exit with unsaved changes in this session.
+!SESSION 2026-08-04 22:14:30.592 -----------------------------------------------
+eclipse.buildId=Version 1.19.0
+java.version=21.0.3
+java.vendor=Eclipse Adoptium
+BootLoader constants: OS=macosx, ARCH=x86_64, WS=cocoa, NL=en_CO
+Framework arguments:  -keyring /Users/usuario/.eclipse_keyring
+Command-line arguments:  -os macosx -ws cocoa -arch x86_64 -keyring /Users/usuario/.eclipse_keyring
+
+!ENTRY com.st.stm32cube.ide.mcu.informationcenter 1 1 2026-08-04 22:14:59.888
+!MESSAGE Log4j2 initialized with config file /Users/usuario/Documents/Especializacion/RTOS2/sotrii-tp2_CE2026_gr2/.metadata/.log4j2.xml
+
+!ENTRY com.st.stm32cube.ide.mcu.ide 1 1 2026-08-04 22:15:07.620
+!MESSAGE Started RMI Server, listening on port 41337
+
+!ENTRY org.eclipse.cdt.core 1 0 2026-08-04 22:15:42.531
+!MESSAGE Indexed 'sotrii-tp2_02-application' (48 sources, 148 headers) in 17.6 sec: 17,153 declarations; 92,355 references; 1 unresolved inclusions; 202 syntax errors; 239 unresolved names (0.22%)
