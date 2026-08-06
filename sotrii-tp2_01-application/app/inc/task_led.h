@@ -51,9 +51,15 @@ extern "C" {
 
 /********************** external data declaration ****************************/
 extern h_led_t h_led[LED_QTY];
+extern led_ao_t led_ao;
+extern volatile led_ao_wcet_t g_led_ao_wcet;
 
 /********************** external functions declaration ***********************/
 extern void task_led(void *parameters);
+extern led_ao_t *open_led_ao(led_ao_id_t ao_id, h_led_t *device);
+extern BaseType_t release_led_ao(led_ao_t *ao);
+extern BaseType_t send_led_ao(led_ao_t *ao, led_ev_t event);
+extern BaseType_t ioctl_led_ao(led_ao_t *ao, led_ao_ioctl_t request);
 
 /********************** End of CPP guard *************************************/
 #ifdef __cplusplus

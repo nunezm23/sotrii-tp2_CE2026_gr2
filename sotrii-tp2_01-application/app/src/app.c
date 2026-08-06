@@ -64,9 +64,6 @@
 #define QUEUE_LENGTH_       (5)
 #define QUEUE_ITEM_SIZE_    (sizeof(sys_ev_t))
 
-#define QUEUE_LENGTH__		(1)
-#define QUEUE_ITEM_SIZE__	(sizeof(led_ev_t))
-
 /********************** internal data declaration ****************************/
 
 /********************** internal functions declaration ***********************/
@@ -83,7 +80,6 @@ uint32_t g_app_stack_overflow_cnt;
 
 /* Declare a variable of type QueueHandle_t. This is used to reference queues*/
 QueueHandle_t h_sys_task_q;
-QueueHandle_t h_led_task_q;
 
 /* Declare a variable of type SemaphoreHandle_t (binary or counting) or mutex.
  * This is used to reference the semaphore that is used to synchronize a thread
@@ -94,7 +90,6 @@ TaskHandle_t h_task_a;
 TaskHandle_t h_task_b;
 TaskHandle_t h_task_btn;
 TaskHandle_t h_task_sys;
-TaskHandle_t h_task_led;
 
 /********************** external functions definition ************************/
 void app_init(void)
@@ -122,10 +117,6 @@ void app_init(void)
 	h_sys_task_q = xQueueCreate(QUEUE_LENGTH_, QUEUE_ITEM_SIZE_);
 	configASSERT(NULL != h_sys_task_q);
 	vQueueAddToRegistry(h_sys_task_q, "Queue BTN-> SYS");
-
-	h_led_task_q = xQueueCreate(QUEUE_LENGTH__, QUEUE_ITEM_SIZE__);
-	configASSERT(NULL != h_led_task_q);
-	vQueueAddToRegistry(h_led_task_q, "Queue SYS-> LED");
 
 	/* The semaphore is created in the 'empty' state, meaning the semaphore
 	 * must first be given using the xSemaphoreGive() API function before it can
@@ -156,16 +147,12 @@ void app_init(void)
     /* Check the thread was created successfully. */
     configASSERT(pdPASS == ret);
 
-    /* Task LED thread at priority 1 */
-	ret = xTaskCreate(task_led,							/* Pointer to the function thats implement the task. */
-					  "Task Led     ",					/* Text name for the task. This is to facilitate debugging only. */
-					  (configMINIMAL_STACK_SIZE),		/* Stack depth in words. */
-					  (void *)&h_led,					/* We are using the task parameter. */
-					  (tskIDLE_PRIORITY + 1ul),			/* This task will run at priority 1. */
-					  &h_task_led);						/* We are using a variable as task handle. */
+	/* Init Cycle Counter before measuring the Active Object interfaces. */
+	cycle_counter_init();
 
-    /* Check the thread was created successfully. */
-    configASSERT(pdPASS == ret);
+	/* Open the LED Active Object. open_led_ao() allocates its queue and
+	 * synchronization objects, then instantiates the Gatekeeper task. */
+	configASSERT(NULL != open_led_ao(LED_AO_ID_A, &h_led[LED_A]));
 
     /* Task System thread at priority 1 */
     ret = xTaskCreate(task_sys,							/* Pointer to the function thats implement the task. */
@@ -202,8 +189,6 @@ void app_init(void)
     /* Application Interrupts Init */
 	app_it_init();
 
-	/* Init Cycle Counter */
-	cycle_counter_init();
 }
 
 /********************** end of file ******************************************/

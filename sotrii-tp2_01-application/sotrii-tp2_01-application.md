@@ -457,3 +457,91 @@ Pulsación 3: apagar
 ```
 
 Este diseño es un ejemplo sencillo de un sistema dirigido por eventos implementado con tareas, colas y máquinas de estados en FreeRTOS.
+
+---
+
+## 12. Active Object LED: validación e implementación
+
+### Estado encontrado inicialmente
+
+El proyecto recibido ya contenía parte de la funcionalidad: la estructura física del LED, la máquina de estados, el acceso mediante STM32F4 HAL, una tarea periódica y una cola global entre `task_sys` y `task_led`. También estaba inicializado el contador de ciclos DWT.
+
+Sin embargo, aún no estaba implementado el Active Object pedido: no existía un descriptor con `ao_id` y `ao_queue`, no estaban las funciones `open_led_ao()`, `release_led_ao()`, `send_led_ao()` e `ioctl_led_ao()`, y la tarea LED no era un Gatekeeper con interfaz síncrona.
+
+### Resultado implementado
+
+| Requisito | Implementación |
+|---|---|
+| Estructura del dispositivo | `led_ao_t`, con `ao_id`, `ao_queue`, `ao_lock`, `ao_done`, `ao_task`, `device` e `is_open` |
+| Interfaces | `open_led_ao()`, `release_led_ao()`, `send_led_ao()` e `ioctl_led_ao()` |
+| Patrón síncrono | La tarea solicitante espera en `ao_done` hasta que el Gatekeeper aplica la orden al GPIO |
+| Gatekeeper | `task_led()` recibe como parámetro una referencia a `led_ao_t` y es la única tarea que accede al LED |
+| Gestión por polling | El Gatekeeper despierta como máximo cada 50 ms para mantener el parpadeo |
+| API STM32F4 HAL | `HAL_GPIO_WritePin()`, `HAL_GPIO_ReadPin()` y `HAL_GPIO_TogglePin()` |
+| Almacenamiento | Cola FreeRTOS de cuatro `led_ao_msg_t`, con asignación dinámica mediante `xQueueCreate()` |
+| Exclusión de solicitudes | El mutex `ao_lock` serializa llamadas concurrentes |
+| Liberación | Se envía una orden de cierre, se apaga el LED y se eliminan tarea, cola y semáforos |
+
+`task_sys` ya no escribe directamente en una cola global del LED. Ahora utiliza, según el estado requerido:
+
+```c
+ioctl_led_ao(&led_ao, LED_AO_IOCTL_ON);
+ioctl_led_ao(&led_ao, LED_AO_IOCTL_BLINK);
+ioctl_led_ao(&led_ao, LED_AO_IOCTL_OFF);
+```
+
+La comunicación es síncrona: la llamada retorna solamente después de que `task_led()` procesa la orden. De esta manera, el acceso físico queda centralizado en el Gatekeeper.
+
+## 13. Compilación y validación
+
+Se realizó una comprobación sintáctica de los archivos modificados con las mismas definiciones e inclusiones del proyecto (`STM32F446xx` y `USE_HAL_DRIVER`). El resultado fue correcto, sin errores. Los avisos observados corresponden a compilar encabezados CMSIS para Cortex-M4 con el compilador nativo de 64 bits y a formatos `%lu` que ya existían en el proyecto; no corresponden al Active Object agregado.
+
+La compilación final, depuración y observación sobre la placa deben realizarse en STM32CubeIDE, porque el entorno utilizado para esta revisión no dispone del compilador ARM de STM32CubeIDE ni de la NUCLEO-F446RE conectada.
+
+Comportamiento esperado en la placa:
+
+1. Primera pulsación: LED encendido.
+2. Segunda pulsación: LED parpadeando, con cambio cada 500 ms.
+3. Tercera pulsación: LED apagado.
+4. La secuencia vuelve a comenzar.
+
+Durante la depuración deben observarse `led_ao.ao_queue`, `led_ao.ao_task`, `led_ao.is_open` y `g_led_ao_wcet`.
+
+## 14. Medición de WCET
+
+Las cuatro interfaces quedaron instrumentadas con `DWT->CYCCNT`. La estructura global `g_led_ao_wcet` conserva la última medición y el máximo observado para cada función:
+
+| Función | Última medición | Máximo observado |
+|---|---|---|
+| `open_led_ao()` | `open_last` | `open_max` |
+| `release_led_ao()` | `release_last` | `release_max` |
+| `send_led_ao()` | `send_last` | `send_max` |
+| `ioctl_led_ao()` | `ioctl_last` | `ioctl_max` |
+
+Los valores se almacenan en ciclos. Para convertirlos a microsegundos:
+
+```text
+tiempo_us = ciclos / (SystemCoreClock / 1 000 000)
+```
+
+Con la configuración actual de 84 MHz, la conversión es `tiempo_us = ciclos / 84`.
+
+No se incluyen cifras inventadas como WCET. El máximo empírico debe obtenerse ejecutando repetidamente la aplicación en la NUCLEO-F446RE, en la configuración final de compilación, y observando los campos `*_max`. Como `send_led_ao()` e `ioctl_led_ao()` son síncronas, su tiempo incluye la espera hasta que el Gatekeeper ejecuta la orden; este es el tiempo de respuesta visible para la tarea solicitante.
+
+### Registro de resultados en hardware
+
+| Función | Máximo, ciclos | Máximo, µs | Condición de prueba |
+|---|---:|---:|---|
+| `open_led_ao()` | Pendiente de placa | Pendiente | Arranque de la aplicación |
+| `send_led_ao()` | Pendiente de placa | Pendiente | Órdenes OFF/ON/BLINK repetidas |
+| `ioctl_led_ao()` | Pendiente de placa | Pendiente | Órdenes OFF/ON/BLINK repetidas |
+| `release_led_ao()` | Pendiente de placa | Pendiente | Cierre controlado del Active Object |
+
+Para medir `release_led_ao()` sin alterar el funcionamiento normal, se recomienda llamarla temporalmente desde una tarea de prueba al final de la grabación, registrar `release_max` y después retirar esa llamada.
+
+## 15. Referencias técnicas
+
+- [FreeRTOS: creación de colas](https://www.freertos.org/Documentation/02-Kernel/04-API-references/06-Queues/01-xQueueCreate)
+- [FreeRTOS: envío a colas](https://www.freertos.org/Documentation/02-Kernel/04-API-references/06-Queues/03-xQueueSend)
+- [FreeRTOS: recepción desde colas](https://www.freertos.org/Documentation/02-Kernel/04-API-references/06-Queues/09-xQueueReceive)
+- [CMSIS-Core: contador de ciclos DWT](https://arm-software.github.io/CMSIS_6/v6.0.0/Core/structDWT__Type.html)

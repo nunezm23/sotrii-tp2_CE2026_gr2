@@ -47,6 +47,7 @@
 #include "board.h"
 #include "app.h"
 #include "task_sys_attribute.h"
+#include "task_led.h"
 
 /********************** macros and definitions *******************************/
 #define G_TASK_SYS_CNT_INI	0ul
@@ -114,7 +115,7 @@ void task_sys_statechart(h_sys_t *h_sys_)
 				h_sys_->sys_sc->tick = ZERO;
 				h_sys_->sys_sc->ev_out = EV_SYS_ON;
 
-				xQueueSend(h_led_task_q, (void *)&h_sys_->sys_sc->ev_out, (TickType_t)ZERO);
+				(void)ioctl_led_ao(&led_ao, LED_AO_IOCTL_ON);
 			}
 			else
 			{
@@ -131,7 +132,7 @@ void task_sys_statechart(h_sys_t *h_sys_)
 				h_sys_->sys_sc->tick = ZERO;
 				h_sys_->sys_sc->ev_out = EV_SYS_BLINK;
 
-				xQueueSend(h_led_task_q, (void *)&h_sys_->sys_sc->ev_out, (TickType_t)ZERO);
+				(void)ioctl_led_ao(&led_ao, LED_AO_IOCTL_BLINK);
 			}
 			else
 			{
@@ -149,7 +150,7 @@ void task_sys_statechart(h_sys_t *h_sys_)
 				h_sys_->sys_sc->tick = ZERO;
 				h_sys_->sys_sc->ev_out = EV_SYS_OFF;
 
-				xQueueSend(h_led_task_q, (void *)&h_sys_->sys_sc->ev_out, ZERO);
+				(void)ioctl_led_ao(&led_ao, LED_AO_IOCTL_OFF);
 			}
 			else
 			{

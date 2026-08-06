@@ -88,6 +88,51 @@ typedef struct
 	led_sc_t *	led_sc;
 } h_led_t;
 
+/* Commands accepted by the LED Active Object interface. */
+typedef enum
+{
+	LED_AO_IOCTL_OFF,
+	LED_AO_IOCTL_ON,
+	LED_AO_IOCTL_BLINK
+} led_ao_ioctl_t;
+
+typedef enum
+{
+	LED_AO_ID_A,
+	LED_AO_ID_QTY
+} led_ao_id_t;
+
+typedef struct
+{
+	led_ev_t event;
+	BaseType_t release;
+} led_ao_msg_t;
+
+/* Active Object descriptor. The queue and synchronization objects are
+ * dynamically allocated by open_led_ao(). */
+typedef struct
+{
+	led_ao_id_t ao_id;
+	QueueHandle_t ao_queue;
+	SemaphoreHandle_t ao_lock;
+	SemaphoreHandle_t ao_done;
+	TaskHandle_t ao_task;
+	h_led_t *device;
+	BaseType_t is_open;
+} led_ao_t;
+
+typedef struct
+{
+	uint32_t open_last;
+	uint32_t open_max;
+	uint32_t release_last;
+	uint32_t release_max;
+	uint32_t send_last;
+	uint32_t send_max;
+	uint32_t ioctl_last;
+	uint32_t ioctl_max;
+} led_ao_wcet_t;
+
 /********************** external data declaration ****************************/
 
 /********************** external functions declaration ***********************/
