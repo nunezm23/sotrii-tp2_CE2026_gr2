@@ -526,18 +526,36 @@ tiempo_us = ciclos / (SystemCoreClock / 1 000 000)
 
 Con la configuración actual de 84 MHz, la conversión es `tiempo_us = ciclos / 84`.
 
-No se incluyen cifras inventadas como WCET. El máximo empírico debe obtenerse ejecutando repetidamente la aplicación en la NUCLEO-F446RE, en la configuración final de compilación, y observando los campos `*_max`. Como `send_led_ao()` e `ioctl_led_ao()` son síncronas, su tiempo incluye la espera hasta que el Gatekeeper ejecuta la orden; este es el tiempo de respuesta visible para la tarea solicitante.
+La medición se realizó sobre la NUCLEO-F446RE durante una sesión de depuración en STM32CubeIDE, utilizando Live Expressions para observar los campos de `g_led_ao_wcet`. Los resultados representan el máximo tiempo observado experimentalmente; no constituyen una demostración analítica del WCET absoluto.
+
+Para `open_led_ao()` se realizaron diez arranques independientes. En todos se obtuvo el mismo resultado: 9339 ciclos. Para `send_led_ao()` e `ioctl_led_ao()` se ejecutó treinta veces la secuencia funcional de encendido, parpadeo y apagado, conservando en los campos `*_max` el mayor valor observado.
 
 ### Registro de resultados en hardware
 
 | Función | Máximo, ciclos | Máximo, µs | Condición de prueba |
 |---|---:|---:|---|
-| `open_led_ao()` | Pendiente de placa | Pendiente | Arranque de la aplicación |
-| `send_led_ao()` | Pendiente de placa | Pendiente | Órdenes OFF/ON/BLINK repetidas |
-| `ioctl_led_ao()` | Pendiente de placa | Pendiente | Órdenes OFF/ON/BLINK repetidas |
+| `open_led_ao()` | 9339 | 111,18 | Diez arranques; mismo valor en todas las mediciones |
+| `send_led_ao()` | 7638 | 90,93 | Treinta repeticiones de la secuencia OFF/ON/BLINK |
+| `ioctl_led_ao()` | 7745 | 92,20 | Treinta repeticiones de la secuencia OFF/ON/BLINK |
 | `release_led_ao()` | Pendiente de placa | Pendiente | Cierre controlado del Active Object |
 
-Para medir `release_led_ao()` sin alterar el funcionamiento normal, se recomienda llamarla temporalmente desde una tarea de prueba al final de la grabación, registrar `release_max` y después retirar esa llamada.
+En la última muestra, `send_led_ao()` registró 6523 ciclos (77,65 µs) e `ioctl_led_ao()` registró 6621 ciclos (78,82 µs). Estos valores son menores que sus máximos acumulados, lo que confirma que `*_max` conserva correctamente el peor caso observado durante la prueba.
+
+El máximo de `ioctl_led_ao()` fue 107 ciclos (1,27 µs) mayor que el de `send_led_ao()`. La diferencia es coherente con el procesamiento adicional de `ioctl_led_ao()`, que interpreta la solicitud y llama internamente a `send_led_ao()`.
+
+Después de 142831 ms de ejecución, `task_btn` registró 2856 iteraciones y `task_sys` 2857. El valor teórico para un período de polling de 50 ms es:
+
+```text
+142831 ms / 50 ms = 2856,62 iteraciones
+```
+
+La correspondencia entre los valores teóricos y observados confirma el período de polling configurado. El Gatekeeper LED registró 2883 iteraciones, ligeramente más que las tareas periódicas, porque también puede desbloquearse antes del vencimiento de 50 ms cuando recibe una orden en su cola.
+
+Como `send_led_ao()` e `ioctl_led_ao()` implementan una interfaz síncrona, sus mediciones incluyen la espera hasta que el Gatekeeper recibe la solicitud, accede al GPIO mediante STM32F4 HAL y confirma la finalización. Por tanto, representan el tiempo de respuesta observado por la tarea solicitante.
+
+La prueba funcional confirmó el comportamiento esperado: la primera pulsación encendió el LED, la segunda activó el parpadeo y la tercera lo apagó. La secuencia se repitió sin observar pérdidas de órdenes ni comportamientos incorrectos.
+
+La interfaz `release_led_ao()` no se invoca durante el funcionamiento nominal, porque el Active Object permanece activo durante toda la ejecución. Para completar su medición se debe llamarla temporalmente desde una tarea de prueba, registrar `release_max` y retirar esa llamada antes de restaurar el comportamiento normal de la aplicación.
 
 ## 15. Referencias técnicas
 
