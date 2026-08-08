@@ -1,0 +1,7 @@
+../app/src/task_led.c:92:6:task_led	4
+../app/src/task_led.c:141:11:open_led_ao	11
+../app/src/task_led.c:202:12:send_led_ao	7
+../app/src/task_led.c:223:12:ioctl_led_ao	5
+../app/src/task_led.c:240:12:release_led_ao	6
+../app/src/task_led.c:270:13:led_ao_record	2
+../app/src/task_led.c:281:6:task_led_statechart	13
