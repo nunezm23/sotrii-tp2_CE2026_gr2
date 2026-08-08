@@ -72,12 +72,22 @@ typedef enum sys_st
 
 } sys_st_t;
 
+typedef struct
+{
+    btn_id_t        btn_id;
+    btn_ev_t        event;
+    TickType_t      time;
+
+} sys_msg_t;
+
 /* Structure of Statechart */
 typedef struct
 {
     sys_st_t        state;
 
+    btn_id_t        btn_id;
     sys_ev_t        ev_in;
+    TickType_t      tick_in;
     TickType_t      tick;
 
     sys_ev_t        ev_out;

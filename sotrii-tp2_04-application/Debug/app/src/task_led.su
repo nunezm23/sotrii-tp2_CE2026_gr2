@@ -1,7 +1,7 @@
 ../app/src/task_led.c:92:6:task_led	48	static
-../app/src/task_led.c:139:11:open_led_ao	32	static
-../app/src/task_led.c:191:12:send_led_ao	32	static
-../app/src/task_led.c:212:12:ioctl_led_ao	24	static
-../app/src/task_led.c:229:12:release_led_ao	32	static
-../app/src/task_led.c:259:13:led_ao_record	32	static
-../app/src/task_led.c:270:6:task_led_statechart	24	static
+../app/src/task_led.c:141:11:open_led_ao	40	static
+../app/src/task_led.c:202:12:send_led_ao	32	static
+../app/src/task_led.c:223:12:ioctl_led_ao	24	static
+../app/src/task_led.c:240:12:release_led_ao	32	static
+../app/src/task_led.c:270:13:led_ao_record	32	static
+../app/src/task_led.c:281:6:task_led_statechart	24	static

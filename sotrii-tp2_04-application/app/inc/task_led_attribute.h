@@ -99,6 +99,8 @@ typedef enum
 typedef enum
 {
 	LED_AO_ID_A,
+	LED_AO_ID_B,
+	LED_AO_ID_C,
 	LED_AO_ID_QTY
 } led_ao_id_t;
 

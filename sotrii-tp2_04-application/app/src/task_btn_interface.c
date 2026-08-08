@@ -93,13 +93,20 @@ void release_btn_ao(h_btn_t *h_btn_)
 
 BaseType_t send_btn_ao(h_btn_t *h_btn_, btn_ev_t event_, TickType_t time_)
 {
-    UNUSED(time_);
+    sys_msg_t message;
 
     configASSERT(NULL != h_btn_);
 
+    message.btn_id = h_btn_->btn->id;
+    message.event = event_;
+    message.time = time_;
+
+    LOGGER_INFO("BTN_%u sent event %u, time %lu mS", message.btn_id,
+                message.event, message.time);
+
     return send_sys_ao(
             &h_sys,
-            (sys_ev_t)event_,
+            &message,
             TASK_BTN_DEL_ZERO);
 }
 

@@ -114,6 +114,9 @@ void app_init(void)
 
     BaseType_t ret;
 
+    /* Init Cycle Counter */
+    cycle_counter_init();
+
     /* Task A thread at priority 2 */
     ret = xTaskCreate(task_a,
                       "Task A       ",
@@ -146,14 +149,17 @@ void app_init(void)
     open_sys_ao(&h_sys);
 
     /* LEDs (ya son Active Objects) */
-    open_led_ao(LED_AO_ID_A, &h_led[LED_A]);
+    ret = (NULL != open_led_ao(LED_AO_ID_A, &h_led[LED_A])) ? pdPASS : pdFAIL;
+    configASSERT(pdPASS == ret);
+    ret = (NULL != open_led_ao(LED_AO_ID_B, &h_led[LED_B])) ? pdPASS : pdFAIL;
+    configASSERT(pdPASS == ret);
+    ret = (NULL != open_led_ao(LED_AO_ID_C, &h_led[LED_C])) ? pdPASS : pdFAIL;
+    configASSERT(pdPASS == ret);
 
 
     /* Application Interrupts Init */
     app_it_init();
 
-    /* Init Cycle Counter */
-    cycle_counter_init();
 }
 
 /********************** end of file ******************************************/

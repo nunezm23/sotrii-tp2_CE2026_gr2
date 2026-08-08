@@ -58,11 +58,15 @@
 #define DEL_SYS_MIN			(pdMS_TO_TICKS(50ul))
 #define DEL_SYS_BLINK		(pdMS_TO_TICKS(500ul))
 
+#define DEL_BTN_LONG			(pdMS_TO_TICKS(1000ul))
+#define DEL_LED_C_BTN_A		(pdMS_TO_TICKS(5000ul))
+#define DEL_LED_C_BTN_B		(pdMS_TO_TICKS(10000ul))
+
 #define TASK_SYS_DEL_ZERO	(pdMS_TO_TICKS(0ul))
 #define TASK_SYS_DEL_MAX	DEL_SYS_MIN
 
 /********************** internal data declaration ****************************/
-sys_sc_t sys_sc = {ST_SYS_IDLE, EV_SYS_OFF, ZERO, EV_SYS_NONE, ZERO};
+sys_sc_t sys_sc = {ST_SYS_IDLE, BTN_A, EV_SYS_OFF, ZERO, ZERO, EV_SYS_NONE, ZERO};
 
 /********************** internal functions declaration ***********************/
 void task_sys_statechart(h_sys_t *h_sys_);
@@ -86,6 +90,7 @@ void task_sys(void *parameters)
 	/*  Declare & Initialize Task Function variables */
 	g_task_sys_cnt = G_TASK_SYS_CNT_INI;
 	h_sys_t *p_h_sys = (h_sys_t *)parameters;
+	sys_msg_t message;
 
 	/* Print out: Task Initialized */
 	LOGGER_INFO(" ");
@@ -98,10 +103,19 @@ void task_sys(void *parameters)
 		g_task_sys_cnt++;
 
 		/* Get Events to excite Statechart */
-		if (pdFAIL == xQueueReceive(
+		if (pdPASS == xQueueReceive(
 		                    p_h_sys->ao_queue,
-		                    (void *)&p_h_sys->sys_sc->ev_in,
+		                    (void *)&message,
 		                    TASK_SYS_DEL_ZERO))
+		{
+			p_h_sys->sys_sc->btn_id = message.btn_id;
+			p_h_sys->sys_sc->ev_in = (sys_ev_t)message.event;
+			p_h_sys->sys_sc->tick_in = message.time;
+			LOGGER_INFO("SYS received BTN_%u event %u, time %lu mS",
+						p_h_sys->sys_sc->btn_id, p_h_sys->sys_sc->ev_in,
+						p_h_sys->sys_sc->tick_in);
+		}
+		else
 		{
 		    p_h_sys->sys_sc->ev_in = EV_SYS_NONE;
 		}
@@ -116,59 +130,124 @@ void task_sys(void *parameters)
 
 void task_sys_statechart(h_sys_t *h_sys_)
 {
+	TickType_t time_on;
+
 	switch (h_sys_->sys_sc->state)
 	{
 		case ST_SYS_IDLE:
 
-			if (EV_SYS_ON == h_sys_->sys_sc->ev_in)
+			if (EV_SYS_OFF == h_sys_->sys_sc->ev_in)
 			{
-				h_sys_->sys_sc->state = ST_SYS_ACTIVE_0;
-				h_sys_->sys_sc->tick = ZERO;
-				h_sys_->sys_sc->ev_out = EV_SYS_ON;
+				if (BTN_A == h_sys_->sys_sc->btn_id)
+				{
+					if (h_sys_->sys_sc->tick_in < DEL_BTN_LONG)
+					{
+						time_on = DEL_LED_C_BTN_A;
+						LOGGER_INFO("SYS BTN_A short press: LED_A blink, LED_C on 5 s");
+						(void)send_led_ao(&led_ao[LED_A], EV_LED_BLINK);
+					}
+					else
+					{
+						time_on = h_sys_->sys_sc->tick_in;
+						LOGGER_INFO("SYS BTN_A long press: LED_C on %lu mS", time_on);
+						(void)send_led_ao(&led_ao[LED_A], EV_LED_OFF);
+						(void)send_led_ao(&led_ao[LED_B], EV_LED_OFF);
+						LOGGER_INFO("SYS stopped LED_A and LED_B blink");
+					}
+				}
+				else
+				{
+					if (h_sys_->sys_sc->tick_in < DEL_BTN_LONG)
+					{
+						time_on = DEL_LED_C_BTN_B;
+						LOGGER_INFO("SYS BTN_B short press: LED_B blink, LED_C on 10 s");
+						(void)send_led_ao(&led_ao[LED_B], EV_LED_BLINK);
+					}
+					else
+					{
+						time_on = h_sys_->sys_sc->tick_in;
+						LOGGER_INFO("SYS BTN_B long press: LED_C on %lu mS", time_on);
+						(void)send_led_ao(&led_ao[LED_A], EV_LED_OFF);
+						(void)send_led_ao(&led_ao[LED_B], EV_LED_OFF);
+						LOGGER_INFO("SYS stopped LED_A and LED_B blink");
+					}
+				}
 
-				send_led_ao(&led_ao, EV_LED_ON);
+				h_sys_->sys_sc->state = ST_SYS_ACTIVE_0;
+				h_sys_->sys_sc->tick = time_on;
+				h_sys_->sys_sc->ev_out = EV_SYS_ON;
+				(void)send_led_ao(&led_ao[LED_C], EV_LED_ON);
+				LOGGER_INFO("SYS sent LED_C on");
 			}
-			else
+			else if (EV_SYS_ON == h_sys_->sys_sc->ev_in)
 			{
-				h_sys_->sys_sc->tick += DEL_SYS_MIN;
+				LOGGER_INFO("SYS BTN_%u pressed", h_sys_->sys_sc->btn_id);
 			}
 
 			break;
 
 		case ST_SYS_ACTIVE_0:
 
-			if (EV_SYS_ON == h_sys_->sys_sc->ev_in)
+			if (EV_SYS_OFF == h_sys_->sys_sc->ev_in)
 			{
-				h_sys_->sys_sc->state = ST_SYS_ACTIVE_1;
-				h_sys_->sys_sc->tick = ZERO;
-				h_sys_->sys_sc->ev_out = EV_SYS_BLINK;
+				if (BTN_A == h_sys_->sys_sc->btn_id)
+				{
+					if (h_sys_->sys_sc->tick_in < DEL_BTN_LONG)
+					{
+						time_on = DEL_LED_C_BTN_A;
+						LOGGER_INFO("SYS BTN_A short press: LED_A blink, LED_C on 5 s");
+						(void)send_led_ao(&led_ao[LED_A], EV_LED_BLINK);
+					}
+					else
+					{
+						time_on = h_sys_->sys_sc->tick_in;
+						LOGGER_INFO("SYS BTN_A long press: LED_C on %lu mS", time_on);
+						(void)send_led_ao(&led_ao[LED_A], EV_LED_OFF);
+						(void)send_led_ao(&led_ao[LED_B], EV_LED_OFF);
+						LOGGER_INFO("SYS stopped LED_A and LED_B blink");
+					}
+				}
+				else
+				{
+					if (h_sys_->sys_sc->tick_in < DEL_BTN_LONG)
+					{
+						time_on = DEL_LED_C_BTN_B;
+						LOGGER_INFO("SYS BTN_B short press: LED_B blink, LED_C on 10 s");
+						(void)send_led_ao(&led_ao[LED_B], EV_LED_BLINK);
+					}
+					else
+					{
+						time_on = h_sys_->sys_sc->tick_in;
+						LOGGER_INFO("SYS BTN_B long press: LED_C on %lu mS", time_on);
+						(void)send_led_ao(&led_ao[LED_A], EV_LED_OFF);
+						(void)send_led_ao(&led_ao[LED_B], EV_LED_OFF);
+						LOGGER_INFO("SYS stopped LED_A and LED_B blink");
+					}
+				}
 
-				send_led_ao(&led_ao, EV_LED_BLINK);
+				h_sys_->sys_sc->tick = time_on;
+				h_sys_->sys_sc->ev_out = EV_SYS_ON;
+				(void)send_led_ao(&led_ao[LED_C], EV_LED_ON);
+				LOGGER_INFO("SYS restarted LED_C timer");
+			}
+			else if (h_sys_->sys_sc->tick <= DEL_SYS_MIN)
+			{
+				h_sys_->sys_sc->state = ST_SYS_IDLE;
+				h_sys_->sys_sc->tick = ZERO;
+				h_sys_->sys_sc->ev_out = EV_SYS_OFF;
+				(void)send_led_ao(&led_ao[LED_C], EV_LED_OFF);
+				LOGGER_INFO("SYS sent LED_C off");
 			}
 			else
 			{
-				h_sys_->sys_sc->tick += DEL_SYS_MIN;
+				h_sys_->sys_sc->tick -= DEL_SYS_MIN;
 			}
 
 
 			break;
 
 		case ST_SYS_ACTIVE_1:
-
-			if (EV_SYS_ON == h_sys_->sys_sc->ev_in)
-			{
-				h_sys_->sys_sc->state = ST_SYS_IDLE;
-				h_sys_->sys_sc->tick = ZERO;
-				h_sys_->sys_sc->ev_out = EV_SYS_OFF;
-
-				send_led_ao(&led_ao, EV_LED_OFF);
-			}
-			else
-			{
-				h_sys_->sys_sc->tick += DEL_SYS_MIN;
-			}
-
-
+			h_sys_->sys_sc->state = ST_SYS_IDLE;
 			break;
 	}
 }

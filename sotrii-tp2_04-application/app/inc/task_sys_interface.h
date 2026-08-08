@@ -52,7 +52,7 @@ extern "C" {
 /********************** external functions declaration ***********************/
 extern void open_sys_ao(h_sys_t *h_sys_);
 extern void release_sys_ao(h_sys_t *h_sys_);
-extern BaseType_t send_sys_ao(h_sys_t *h_sys_, sys_ev_t event_,TickType_t timeout_);
+extern BaseType_t send_sys_ao(h_sys_t *h_sys_, sys_msg_t *message_, TickType_t timeout_);
 extern void ioctl_sys_ao(h_sys_t *h_sys_);
 
 /********************** End of CPP guard *************************************/

@@ -72,7 +72,9 @@ void open_sys_ao(h_sys_t *h_sys_)
 
     /* Initialize Statechart */
     h_sys_->sys_sc->state    = ST_SYS_IDLE;
+    h_sys_->sys_sc->btn_id   = BTN_A;
     h_sys_->sys_sc->ev_in    = EV_SYS_NONE;
+    h_sys_->sys_sc->tick_in  = 0u;
     h_sys_->sys_sc->tick     = 0u;
     h_sys_->sys_sc->ev_out   = EV_SYS_NONE;
     h_sys_->sys_sc->tick_out = 0u;
@@ -80,7 +82,7 @@ void open_sys_ao(h_sys_t *h_sys_)
     /* Create Active Object Queue */
     h_sys_->ao_queue = xQueueCreate(
             SYS_QUEUE_LEN,
-            sizeof(sys_ev_t));
+            sizeof(sys_msg_t));
 
     configASSERT(h_sys_->ao_queue != NULL);
 
@@ -111,14 +113,15 @@ void release_sys_ao(h_sys_t *h_sys_)
 
 BaseType_t send_sys_ao(
         h_sys_t *h_sys_,
-        sys_ev_t event_,
+        sys_msg_t *message_,
         TickType_t timeout_)
 {
     configASSERT(h_sys_ != NULL);
+    configASSERT(message_ != NULL);
 
     return xQueueSend(
             h_sys_->ao_queue,
-            &event_,
+            message_,
             timeout_);
 }
 

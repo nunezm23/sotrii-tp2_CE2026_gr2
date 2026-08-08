@@ -1,4 +1,4 @@
 ../app/src/task_sys_interface.c:63:6:open_sys_ao	48	static,ignoring_inline_asm
-../app/src/task_sys_interface.c:101:6:release_sys_ao	24	static,ignoring_inline_asm
-../app/src/task_sys_interface.c:112:12:send_sys_ao	32	static,ignoring_inline_asm
-../app/src/task_sys_interface.c:125:6:ioctl_sys_ao	16	static
+../app/src/task_sys_interface.c:103:6:release_sys_ao	24	static,ignoring_inline_asm
+../app/src/task_sys_interface.c:114:12:send_sys_ao	32	static,ignoring_inline_asm
+../app/src/task_sys_interface.c:128:6:ioctl_sys_ao	16	static

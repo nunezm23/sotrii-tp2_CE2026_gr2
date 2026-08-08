@@ -80,7 +80,7 @@ static void led_ao_record(volatile uint32_t *last, volatile uint32_t *maximum,
 /********************** external data declaration ****************************/
 uint32_t g_task_led_cnt;
 
-led_ao_t led_ao = {0};
+led_ao_t led_ao[LED_QTY] = {0};
 volatile led_ao_wcet_t g_led_ao_wcet = {0};
 
 h_led_t h_led[LED_QTY] = {{&led[LED_A], &led_sc[LED_A]},
@@ -110,6 +110,8 @@ void task_led(void *parameters)
 		 * receive implements the 50 ms polling required by the blink state. */
 		if (pdPASS == xQueueReceive(ao->ao_queue, &message, TASK_LED_DEL_MAX))
 		{
+			LOGGER_INFO("LED_%u received event %u", ao->device->led->id, message.event);
+
 			if (pdTRUE == message.release)
 			{
 				HAL_GPIO_WritePin(ao->device->led->gpio_port,
@@ -139,53 +141,62 @@ void task_led(void *parameters)
 led_ao_t *open_led_ao(led_ao_id_t ao_id, h_led_t *device)
 {
 	uint32_t start = cycle_counter_get();
+	led_ao_t *ao;
 	BaseType_t ret;
 
-	if ((ao_id >= LED_AO_ID_QTY) || (NULL == device) || (pdTRUE == led_ao.is_open))
+	if ((ao_id >= LED_AO_ID_QTY) || (NULL == device))
 	{
 		led_ao_record(&g_led_ao_wcet.open_last, &g_led_ao_wcet.open_max, start);
 		return NULL;
 	}
 
-	led_ao.ao_queue = xQueueCreate(LED_AO_QUEUE_LENGTH, sizeof(led_ao_msg_t));
-	led_ao.ao_lock = xSemaphoreCreateMutex();
-	led_ao.ao_done = xSemaphoreCreateBinary();
-	if ((NULL == led_ao.ao_queue) || (NULL == led_ao.ao_lock) ||
-		(NULL == led_ao.ao_done))
+	ao = &led_ao[ao_id];
+	if (pdTRUE == ao->is_open)
 	{
-		if (NULL != led_ao.ao_queue) { vQueueDelete(led_ao.ao_queue); }
-		if (NULL != led_ao.ao_lock) { vSemaphoreDelete(led_ao.ao_lock); }
-		if (NULL != led_ao.ao_done) { vSemaphoreDelete(led_ao.ao_done); }
-		led_ao.ao_queue = NULL;
-		led_ao.ao_lock = NULL;
-		led_ao.ao_done = NULL;
 		led_ao_record(&g_led_ao_wcet.open_last, &g_led_ao_wcet.open_max, start);
 		return NULL;
 	}
 
-	led_ao.ao_id = ao_id;
-	led_ao.device = device;
-	led_ao.is_open = pdTRUE;
-	vQueueAddToRegistry(led_ao.ao_queue, "LED AO Queue");
+	ao->ao_queue = xQueueCreate(LED_AO_QUEUE_LENGTH, sizeof(led_ao_msg_t));
+	ao->ao_lock = xSemaphoreCreateMutex();
+	ao->ao_done = xSemaphoreCreateBinary();
+	if ((NULL == ao->ao_queue) || (NULL == ao->ao_lock) ||
+		(NULL == ao->ao_done))
+	{
+		if (NULL != ao->ao_queue) { vQueueDelete(ao->ao_queue); }
+		if (NULL != ao->ao_lock) { vSemaphoreDelete(ao->ao_lock); }
+		if (NULL != ao->ao_done) { vSemaphoreDelete(ao->ao_done); }
+		ao->ao_queue = NULL;
+		ao->ao_lock = NULL;
+		ao->ao_done = NULL;
+		led_ao_record(&g_led_ao_wcet.open_last, &g_led_ao_wcet.open_max, start);
+		return NULL;
+	}
+
+	ao->ao_id = ao_id;
+	ao->device = device;
+	ao->is_open = pdTRUE;
+	vQueueAddToRegistry(ao->ao_queue, "LED AO Queue");
 
 	ret = xTaskCreate(task_led, "LED Gatekeeper", configMINIMAL_STACK_SIZE,
-				  &led_ao, LED_AO_TASK_PRIORITY, &led_ao.ao_task);
+				  ao, LED_AO_TASK_PRIORITY, &ao->ao_task);
 	if (pdPASS != ret)
 	{
-		vQueueDelete(led_ao.ao_queue);
-		vSemaphoreDelete(led_ao.ao_lock);
-		vSemaphoreDelete(led_ao.ao_done);
-		led_ao.ao_queue = NULL;
-		led_ao.ao_lock = NULL;
-		led_ao.ao_done = NULL;
-		led_ao.device = NULL;
-		led_ao.is_open = pdFALSE;
+		vQueueDelete(ao->ao_queue);
+		vSemaphoreDelete(ao->ao_lock);
+		vSemaphoreDelete(ao->ao_done);
+		ao->ao_queue = NULL;
+		ao->ao_lock = NULL;
+		ao->ao_done = NULL;
+		ao->device = NULL;
+		ao->is_open = pdFALSE;
 		led_ao_record(&g_led_ao_wcet.open_last, &g_led_ao_wcet.open_max, start);
 		return NULL;
 	}
 
 	led_ao_record(&g_led_ao_wcet.open_last, &g_led_ao_wcet.open_max, start);
-	return &led_ao;
+	LOGGER_INFO("LED_%u AO initialized", ao->device->led->id);
+	return ao;
 }
 
 BaseType_t send_led_ao(led_ao_t *ao, led_ev_t event)
@@ -349,6 +360,7 @@ void task_led_statechart(h_led_t *h_led_)
 						h_led_->led_sc->tick = DEL_LED_BLINK;
 
 						HAL_GPIO_TogglePin(h_led_->led->gpio_port, h_led_->led->pin);
+						LOGGER_INFO("LED_%u blink", h_led_->led->id);
 					}
 
 					break;

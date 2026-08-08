@@ -51,7 +51,7 @@ extern "C" {
 
 /********************** external data declaration ****************************/
 extern h_led_t h_led[LED_QTY];
-extern led_ao_t led_ao;
+extern led_ao_t led_ao[LED_QTY];
 extern volatile led_ao_wcet_t g_led_ao_wcet;
 
 /********************** external functions declaration ***********************/

@@ -1,5 +1,7 @@
+//org.eclipse.debug.core.PREFERRED_DELEGATES/org.eclipse.cdt.debug.gdbjtag.launchConfigurationType=org.eclipse.cdt.debug.gdbjtag.core.dsfLaunchDelegate,debug,;
 //org.eclipse.debug.core.PREFERRED_DELEGATES/org.eclipse.cdt.launch.applicationLaunchType=org.eclipse.cdt.dsf.gdb.launch.localCLaunch,debug,;org.eclipse.cdt.cdi.launch.localCLaunch,run,;
 //org.eclipse.debug.core.PREFERRED_DELEGATES/org.eclipse.cdt.launch.attachLaunchType=org.eclipse.cdt.dsf.gdb.launch.attachCLaunch,debug,;
 //org.eclipse.debug.core.PREFERRED_DELEGATES/org.eclipse.cdt.launch.postmortemLaunchType=org.eclipse.cdt.dsf.gdb.launch.coreCLaunch,debug,;
 //org.eclipse.debug.core.PREFERRED_DELEGATES/org.eclipse.cdt.launch.remoteApplicationLaunchType=org.eclipse.rse.remotecdt.dsf.debug,debug,;
 eclipse.preferences.version=1
+prefWatchExpressions=<?xml version\="1.0" encoding\="UTF-8" standalone\="no"?>\n<watchExpressions>\n    <expression enabled\="true" text\="g_led_ao_wcet.open_last"/>\n    <expression enabled\="true" text\="g_led_ao_wcet.open_max"/>\n    <expression enabled\="true" text\="g_led_ao_wcet.send_last"/>\n    <expression enabled\="true" text\="g_led_ao_wcet.send_max"/>\n    <expression enabled\="true" text\="g_led_ao_wcet.release_last"/>\n    <expression enabled\="true" text\="g_led_ao_wcet.release_max"/>\n</watchExpressions>\n
