@@ -1,0 +1,2 @@
+../app/src/task_sys.c:84:6:task_sys	40	static
+../app/src/task_sys.c:117:6:task_sys_statechart	16	static
