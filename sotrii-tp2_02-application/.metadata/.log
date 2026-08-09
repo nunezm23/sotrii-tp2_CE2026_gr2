@@ -1,0 +1,35 @@
+!SESSION 2026-08-04 21:53:39.167 -----------------------------------------------
+eclipse.buildId=Version 1.19.0
+java.version=21.0.3
+java.vendor=Eclipse Adoptium
+BootLoader constants: OS=macosx, ARCH=x86_64, WS=cocoa, NL=en_CO
+Framework arguments:  -keyring /Users/usuario/.eclipse_keyring
+Command-line arguments:  -os macosx -ws cocoa -arch x86_64 -keyring /Users/usuario/.eclipse_keyring
+
+!ENTRY com.st.stm32cube.ide.mcu.informationcenter 4 4 2026-08-04 21:54:15.326
+!MESSAGE CubeMX plugin appears to be active, Log4j initialization might be too late.
+
+!ENTRY com.st.stm32cube.ide.mcu.informationcenter 1 1 2026-08-04 21:54:15.327
+!MESSAGE Log4j2 initialized with config file /Users/usuario/Documents/Especializacion/RTOS2/sotrii-tp2_02-application/.metadata/.log4j2.xml
+
+!ENTRY com.st.stm32cube.ide.mcu.ide 1 1 2026-08-04 21:54:21.272
+!MESSAGE Started RMI Server, listening on port 41337
+!SESSION 2026-08-04 22:00:40.805 -----------------------------------------------
+eclipse.buildId=Version 1.19.0
+java.version=21.0.3
+java.vendor=Eclipse Adoptium
+BootLoader constants: OS=macosx, ARCH=x86_64, WS=cocoa, NL=en_CO
+Framework arguments:  -keyring /Users/usuario/.eclipse_keyring
+Command-line arguments:  -os macosx -ws cocoa -arch x86_64 -keyring /Users/usuario/.eclipse_keyring
+
+!ENTRY com.st.stm32cube.ide.mcu.informationcenter 1 1 2026-08-04 22:01:06.388
+!MESSAGE Log4j2 initialized with config file /Users/usuario/Documents/Especializacion/RTOS2/sotrii-tp2_02-application/.metadata/.log4j2.xml
+
+!ENTRY com.st.stm32cube.ide.mcu.ide 1 1 2026-08-04 22:01:12.483
+!MESSAGE Started RMI Server, listening on port 41337
+
+!ENTRY org.eclipse.cdt.core 1 0 2026-08-04 22:02:28.808
+!MESSAGE Indexed 'sotrii-tp1_03-application' (44 sources, 141 headers) in 11.2 sec: 16,601 declarations; 84,660 references; 1 unresolved inclusions; 203 syntax errors; 239 unresolved names (0.24%)
+
+!ENTRY org.eclipse.cdt.core 1 0 2026-08-04 22:02:35.152
+!MESSAGE Indexed 'sotrii-tp1_01-application' (48 sources, 147 headers) in 6.31 sec: 17,313 declarations; 92,099 references; 1 unresolved inclusions; 202 syntax errors; 239 unresolved names (0.22%)

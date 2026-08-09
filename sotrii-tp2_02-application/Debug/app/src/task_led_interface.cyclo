@@ -1,0 +1,4 @@
+../app/src/task_led_interface.c:65:6:open_led_ao	3
+../app/src/task_led_interface.c:99:6:release_led_ao	1
+../app/src/task_led_interface.c:107:12:send_led_ao	1
+../app/src/task_led_interface.c:112:6:ioctl_led_ao	1
